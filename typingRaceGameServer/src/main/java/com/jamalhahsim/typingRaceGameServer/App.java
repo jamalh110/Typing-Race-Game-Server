@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
+import com.jamalhashim.typingRaceGameServer.classes.MatchMakerThread;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -24,40 +24,43 @@ public class App {
 	 * 
 	 * Things to Clean: active channels thread number of threads in boss and worker
 	 * groups channel closed alert connection visited variable
+	 * 
+	 * The request.getURI depreciation, change it to something not depreciated
 	 *
 	 */
-	final static int PORT = 8080;
+	final static int GAME_PORT = 8080;
+	final static int LOGIN_PORT = 8081;
 	static boolean SSL = false;
 	// for tracking active connections
 	static CopyOnWriteArrayList<Channel> channels = new CopyOnWriteArrayList<Channel>();
-
+	static MatchMakerThread matchMaker = null;
 	public static void main(String[] args) {
 		
-		Thread matchMaker = new Thread();
-		
+		matchMaker = new MatchMakerThread();
+		matchMaker.start();
 		
 		// change as necessary, probably keep 1 bossGroup
 		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
 		EventLoopGroup workerGroup = new NioEventLoopGroup(10);
 		try {
-			//for no ssl
+			//for client communication
 			ServerBootstrap b1 = new ServerBootstrap();
 			b1.option(ChannelOption.SO_BACKLOG, 1024);
 			b1.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 					.handler(new LoggingHandler(LogLevel.INFO)).childHandler(new GameInitializer());
 			b1.option(ChannelOption.TCP_NODELAY, true);
 			b1.option(ChannelOption.SO_KEEPALIVE, false);
-			Channel ch = b1.bind(PORT).sync().channel();
+			Channel ch = b1.bind(GAME_PORT).sync().channel();
 
 			
-			//for ssl
+			//for login server communication
 			ServerBootstrap b2 = new ServerBootstrap();
 			b2.option(ChannelOption.SO_BACKLOG, 1024);
 			b2.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 					.handler(new LoggingHandler(LogLevel.INFO)).childHandler(new LoginServerInitializer());
 			b2.option(ChannelOption.TCP_NODELAY, true);
 			b2.option(ChannelOption.SO_KEEPALIVE, false);
-			Channel ch2 = b2.bind(PORT).sync().channel();
+			Channel ch2 = b2.bind(LOGIN_PORT).sync().channel();
 			// thread for tracking active channels
 			
 			ch.closeFuture().sync();
