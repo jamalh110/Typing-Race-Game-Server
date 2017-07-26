@@ -4,6 +4,8 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import com.jamalhahsim.typingRaceGameServer.App;
+
 public class MatchMakerThread extends Thread {
 	ArrayBlockingQueue<MatchRequest> queue = new ArrayBlockingQueue<MatchRequest>(100);
 	MatchRequest current = null;
@@ -43,10 +45,12 @@ public class MatchMakerThread extends Thread {
 				} else {
 					System.out.println("match made");
 					UUID matchID = UUID.randomUUID();
-					current.fill(UUID.randomUUID(), matchID);
-					polled.fill(UUID.randomUUID(), matchID);
+					GameThread thread = App.findThread();
+					current.fill(thread.threadID, matchID);
+					polled.fill(thread.threadID, matchID);
 					current = null;
 					Game g = new Game(current, polled, matchID);
+					thread.addGameToQueue(g);
 				}
 			}
 

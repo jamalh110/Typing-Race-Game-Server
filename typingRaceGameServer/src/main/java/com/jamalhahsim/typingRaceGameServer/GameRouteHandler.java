@@ -1,6 +1,11 @@
 package com.jamalhahsim.typingRaceGameServer;
 
 import java.util.Map;
+import java.util.UUID;
+
+import com.jamalhashim.typingRaceGameServer.classes.ConnectionRequest;
+import com.jamalhashim.typingRaceGameServer.classes.Game;
+import com.jamalhashim.typingRaceGameServer.classes.MessageRequest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -24,7 +29,7 @@ import io.netty.util.CharsetUtil;
 public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (1)
 	int timesVisited = 0;
 	boolean channelAdded = false;
-
+	Game game = null;
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, Object msg) { // (2)
 		timesVisited++;
@@ -43,8 +48,6 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 
 		if (!(msg instanceof HttpRequest)) {
 			System.out.println("not http");
-			ByteBuf bytes = Unpooled.copiedBuffer("test2", CharsetUtil.UTF_8);
-			ctx.write(bytes);
 			return;
 		}
 		// tst
@@ -52,18 +55,27 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
 		Map<String, java.util.List<String>> params = queryStringDecoder.parameters();
 		try {
-			System.out.println("message: " + params.get("message").get(0));
-		} catch (Exception e) {
-
-			System.out.println("no message");
+		if(params.get("type").get(0).equals("connect")&&game==null) {
+			UUID sessionID = UUID.fromString(params.get("sessionID").get(0));
+			UUID matchID = UUID.fromString(params.get("matchID").get(0));
+			UUID threadID = UUID.fromString(params.get("threadID").get(0));
+			ConnectionRequest req = new ConnectionRequest(ConnectionRequest.CONNECT, sessionID, matchID, ctx);
+			game = App.getThread(threadID).getGame(matchID);
+			game.addConnectionToQueue(req);
 		}
-		ByteBuf bytes = Unpooled.copiedBuffer("test2", CharsetUtil.UTF_8);
-		DefaultFullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, bytes);
-		resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+		if(params.get("type").get(0).equals("message")&&game!=null) {
+			UUID sessionID = UUID.fromString(params.get("sessionID").get(0));
+			UUID matchID = UUID.fromString(params.get("matchID").get(0));
+			String message = params.get("type").get(0);
+			MessageRequest req = new MessageRequest(message, sessionID, matchID, ctx);
+			game.sendMessage(req);
+		}else if(game==null) {
+			
+		}
 		System.out.println(msg);
-
-		HttpUtil.setContentLength(resp, bytes.readableBytes());
-		ctx.writeAndFlush(resp);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 	@Override
@@ -75,6 +87,13 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 		cause.printStackTrace();
 		System.err.println("closing" + cause.getClass());
 		ctx.close();
+	}
+	void ctxWrite(ChannelHandlerContext ctx, String message) {
+		ByteBuf bytes = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
+		DefaultFullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, bytes);
+		resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+		HttpUtil.setContentLength(resp, bytes.readableBytes());
+		ctx.writeAndFlush(resp);
 	}
 	
 }

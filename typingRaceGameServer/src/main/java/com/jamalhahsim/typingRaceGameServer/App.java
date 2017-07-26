@@ -1,9 +1,10 @@
 package com.jamalhahsim.typingRaceGameServer;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.jamalhashim.typingRaceGameServer.classes.GameThread;
 import com.jamalhashim.typingRaceGameServer.classes.MatchMakerThread;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -15,10 +16,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-/**
- * Hello world!
- *
- */
 public class App {
 	/**
 	 * 
@@ -26,19 +23,27 @@ public class App {
 	 * groups channel closed alert connection visited variable
 	 * 
 	 * The request.getURI depreciation, change it to something not depreciated
-	 *
+	 * fix the findthread method and actually do the logic instead of returning the first one
+	 * handle nulls and wrong requests or out of order requests from the client. For example if they
+	 * try and connect when they already have or send a message if they havent connected
+	 * 
+	 * ADD A READY REQUEST that checks if both players have connected, and sends a countdown start time
 	 */
 	final static int GAME_PORT = 8080;
 	final static int LOGIN_PORT = 8081;
 	static boolean SSL = false;
 	// for tracking active connections
 	static CopyOnWriteArrayList<Channel> channels = new CopyOnWriteArrayList<Channel>();
+	static HashMap<UUID, GameThread> gameThreads = new HashMap<UUID, GameThread>();
 	static MatchMakerThread matchMaker = null;
 	public static void main(String[] args) {
 		
 		matchMaker = new MatchMakerThread();
 		matchMaker.start();
-		
+		UUID u1 = UUID.randomUUID();
+		GameThread g1 = new GameThread(u1);
+		gameThreads.put(u1, g1);
+		g1.start();
 		// change as necessary, probably keep 1 bossGroup
 		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
 		EventLoopGroup workerGroup = new NioEventLoopGroup(10);
@@ -74,7 +79,23 @@ public class App {
 		}
 
 	}
-
+	/**
+	 * get a specific game thread based on its id
+	 * @param threadID the id of the thread
+	 * @return
+	 */
+	public static GameThread getThread(UUID threadID) {
+		return gameThreads.get(threadID);
+	}
+	/**
+	 * returns the thread with the least amount of games
+	 */
+	public static GameThread findThread() {
+		for(GameThread g:gameThreads.values()) {
+			return g;
+		}
+		return null;
+	}
 	// Thread thread = new Thread(new Runnable() {
 	//
 	// public void run() {
