@@ -27,7 +27,9 @@ public class App {
 	 * handle nulls and wrong requests or out of order requests from the client. For example if they
 	 * try and connect when they already have or send a message if they havent connected
 	 * 
-	 * ADD A READY REQUEST that checks if both players have connected, and sends a countdown start time
+	 * ADD A READY REQUEST that checks if both players have connected, and sends a countdown start time if true. if false return waiting for player
+	 * 
+	 * test comment
 	 */
 	final static int GAME_PORT = 8080;
 	final static int LOGIN_PORT = 8081;

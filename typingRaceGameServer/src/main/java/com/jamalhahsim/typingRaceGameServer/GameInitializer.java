@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-
+//test comment
 public class GameInitializer extends ChannelInitializer<SocketChannel> {
 	  
 	      private final SslContext sslCtx;
