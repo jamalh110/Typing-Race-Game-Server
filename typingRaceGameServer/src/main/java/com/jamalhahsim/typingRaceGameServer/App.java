@@ -21,7 +21,7 @@ public class App {
 	 * 
 	 * Things to Clean: active channels thread number of threads in boss and worker
 	 * groups channel closed alert connection visited variable
-	 * 
+	 *  
 	 * The request.getURI depreciation, change it to something not depreciated
 	 * fix the findthread method and actually do the logic instead of returning the first one
 	 * handle nulls and wrong requests or out of order requests from the client. For example if they
