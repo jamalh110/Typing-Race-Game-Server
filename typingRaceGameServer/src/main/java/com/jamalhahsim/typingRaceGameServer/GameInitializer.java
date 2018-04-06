@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-//test comment
+//this is the class that handles the pipeline for all of the game inputs. 
 public class GameInitializer extends ChannelInitializer<SocketChannel> {
 	  
 	      private final SslContext sslCtx;
@@ -31,6 +31,7 @@ public class GameInitializer extends ChannelInitializer<SocketChannel> {
 	      
 	          //p.addLast(new HttpRequestDecoder());
 	          // Uncomment the following line if you don't want to handle HttpChunks.
+	          //^ look that up in netty's http docs if you need it
 	          p.addLast("timeout",new ReadTimeoutHandler(30));
 	         
 	          p.addLast("codec",new HttpServerCodec());

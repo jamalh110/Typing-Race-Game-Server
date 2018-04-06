@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.jamalhashim.typingRaceGameServer.classes.GameClaim;
 import com.jamalhashim.typingRaceGameServer.classes.GameThread;
 import com.jamalhashim.typingRaceGameServer.classes.MatchMakerThread;
 
@@ -27,16 +28,22 @@ public class App {
 	 * handle nulls and wrong requests or out of order requests from the client. For example if they
 	 * try and connect when they already have or send a message if they havent connected
 	 * 
+	 * session id status to avoid rerolls
 	 * ADD A READY REQUEST that checks if both players have connected, and sends a countdown start time if true. if false return waiting for player
+	 * 
+	 * TODO: add a status page for usernames to make sure they do not connect twice. 
 	 * 
 	 * test comment
 	 */
-	final static int GAME_PORT = 8080;
-	final static int LOGIN_PORT = 8081;
+	final static int GAME_PORT = 9090;
+	final static int LOGIN_PORT = 9091;
 	static boolean SSL = false;
 	// for tracking active connections
 	static CopyOnWriteArrayList<Channel> channels = new CopyOnWriteArrayList<Channel>();
+	//add a weight to order the game theads later. 
 	static HashMap<UUID, GameThread> gameThreads = new HashMap<UUID, GameThread>();
+	static HashMap<String,GameClaim> gameClaims = new HashMap<String, GameClaim>();
+	//TODO: session id status 
 	static MatchMakerThread matchMaker = null;
 	public static void main(String[] args) {
 		
@@ -57,6 +64,7 @@ public class App {
 					.handler(new LoggingHandler(LogLevel.INFO)).childHandler(new GameInitializer());
 			b1.option(ChannelOption.TCP_NODELAY, true);
 			b1.option(ChannelOption.SO_KEEPALIVE, false);
+			
 			Channel ch = b1.bind(GAME_PORT).sync().channel();
 
 			
@@ -89,6 +97,13 @@ public class App {
 	public static GameThread getThread(UUID threadID) {
 		return gameThreads.get(threadID);
 	}
+	public static void addGameClaim(String sessionID, GameClaim claim) {
+		gameClaims.put(sessionID, claim);
+	}
+	public static GameClaim claimClaim(String sessionID) {
+		return gameClaims.remove(sessionID);
+		
+	}
 	/**
 	 * returns the thread with the least amount of games
 	 */
@@ -98,41 +113,6 @@ public class App {
 		}
 		return null;
 	}
-	// Thread thread = new Thread(new Runnable() {
-	//
-	// public void run() {
-	// String FILENAME = "C:\\javalogs\\netty.txt";
-	// PrintWriter bw = null;
-	// try {
-	// //bw = new BufferedWriter(new FileWriter(FILENAME));
-	// bw = new PrintWriter("netty.txt");
-	// } catch (IOException e1) {
-	// // TODO Auto-generated catch block
-	// e1.printStackTrace();
-	// }
-	// while(true) {
-	// //System.out.print(channels.size());
-	// int active = 0;
-	// for(int i = 0;i<channels.size();i++) {
-	// if(channels.get(i).isActive()) {
-	// active++;
-	// }
-	// }
-	// try {
-	// bw.println(channels.size()+"<-Channels Active->"+active);
-	// bw.flush();
-	// } catch (Exception e1) {
-	// // TODO Auto-generated catch block
-	// e1.printStackTrace();
-	// }
-	// try {
-	// Thread.sleep(1000);
-	// } catch (InterruptedException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
-	// }
-	// });
-	// thread.start();
+	
+	
 }

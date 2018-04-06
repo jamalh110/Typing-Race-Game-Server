@@ -4,6 +4,8 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.jamalhahsim.typingRaceGameServer.App;
+
 public class GameThread extends Thread {
 	ConcurrentHashMap<UUID, Game> games = new ConcurrentHashMap<UUID, Game>();
 	ArrayBlockingQueue<Game> queue = new ArrayBlockingQueue<Game>(100);
@@ -21,6 +23,7 @@ public class GameThread extends Thread {
 				while (!queue.isEmpty()) {
 					Game g = queue.poll();
 					addGame(g);
+					
 				}
 				for (Game game : games.values()) {
 					game.execute();
@@ -51,5 +54,7 @@ public class GameThread extends Thread {
 	}
 	private void addGame(Game game) {
 		games.put(game.matchID, game);
+		App.addGameClaim(game.player1SessionID.toString(), game.player1Claim);
+		App.addGameClaim(game.player2SessionID.toString(), game.player2Claim);
 	}
 }

@@ -53,7 +53,7 @@ public class LoginRouteHandler extends SimpleChannelInboundHandler<Object> { // 
 			System.out.println("Incorrect message format");
 			return;
 		}
-		if (type.equals("query")) {
+		/*if (type.equals("query")) {
 			if (req != null) {
 				if (req.matchMade()) {
 					try {
@@ -69,7 +69,7 @@ public class LoginRouteHandler extends SimpleChannelInboundHandler<Object> { // 
 			} else {
 				ctxWrite(ctx, "failed. Request is null");
 			}
-		}
+		}*/
 		if (req != null) {
 			if (!req.isValidated()) {
 				req = null;
@@ -77,6 +77,7 @@ public class LoginRouteHandler extends SimpleChannelInboundHandler<Object> { // 
 		}
 		if (type.equals("match")) {
 			handleMatch(ctx, params);
+			
 		}
 		if (type.equals("exit")) {
 			req.invalidate();
@@ -117,7 +118,7 @@ public class LoginRouteHandler extends SimpleChannelInboundHandler<Object> { // 
 			return;
 		}
 
-		if (req != null && req.isValidated()) {
+		/*if (req != null && req.isValidated()) {
 			System.out.println("has match already");
 			ByteBuf bytes = Unpooled.copiedBuffer("already has match", CharsetUtil.UTF_8);
 			DefaultFullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
@@ -126,17 +127,18 @@ public class LoginRouteHandler extends SimpleChannelInboundHandler<Object> { // 
 			HttpUtil.setContentLength(resp, bytes.readableBytes());
 			ctx.writeAndFlush(resp);
 			return;
-		}
+		}*/
 		req = new MatchRequest(sessionID, username);
 		App.matchMaker.submitRequest(req);
 
-		ByteBuf bytes = Unpooled.copiedBuffer("success", CharsetUtil.UTF_8);
+		/*ByteBuf bytes = Unpooled.copiedBuffer("success", CharsetUtil.UTF_8);
 		DefaultFullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, bytes);
 		resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
 		HttpUtil.setContentLength(resp, bytes.readableBytes());
-		ctx.writeAndFlush(resp);
-
+		ctx.writeAndFlush(resp);*/
+		ctxWrite(ctx, "success");
+		ctx.close();
 	}
 
 	public void ctxWrite(ChannelHandlerContext ctx, String message) {

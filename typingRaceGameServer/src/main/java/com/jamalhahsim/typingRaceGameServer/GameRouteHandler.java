@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.jamalhashim.typingRaceGameServer.classes.ConnectionRequest;
 import com.jamalhashim.typingRaceGameServer.classes.Game;
+import com.jamalhashim.typingRaceGameServer.classes.GameClaim;
 import com.jamalhashim.typingRaceGameServer.classes.MessageRequest;
 
 import io.netty.buffer.ByteBuf;
@@ -32,6 +33,7 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 	Game game = null;
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, Object msg) { // (2)
+		
 		timesVisited++;
 		System.err.println("this connection has been visited " + timesVisited);
 		/*if (!channelAdded) {
@@ -55,6 +57,16 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
 		Map<String, java.util.List<String>> params = queryStringDecoder.parameters();
 		try {
+		if(params.get("type").get(0).equals("getMatch")) {
+			String sessionID = params.get("sessionID").get(0);
+			GameClaim game = App.claimClaim(sessionID.toString());
+			if(game==null) {
+				ctxWrite(ctx, "no match");
+			}
+			else {
+				ctxWrite(ctx, game.gameID.toString()+" "+game.threadID.toString());
+			}
+		}
 		if(params.get("type").get(0).equals("connect")&&game==null) {
 			UUID sessionID = UUID.fromString(params.get("sessionID").get(0));
 			UUID matchID = UUID.fromString(params.get("matchID").get(0));
@@ -66,11 +78,21 @@ public class GameRouteHandler extends SimpleChannelInboundHandler<Object> { // (
 		if(params.get("type").get(0).equals("message")&&game!=null) {
 			UUID sessionID = UUID.fromString(params.get("sessionID").get(0));
 			UUID matchID = UUID.fromString(params.get("matchID").get(0));
-			String message = params.get("type").get(0);
-			MessageRequest req = new MessageRequest(message, sessionID, matchID, ctx);
+			String message = params.get("message").get(0);
+			MessageRequest req = null;
+			if(message.equals("word")) {
+				String content = params.get("content").get(0);
+				req = new MessageRequest(message,content, sessionID, matchID, ctx);
+			}
+			else {
+				req = new MessageRequest(message, sessionID, matchID, ctx);
+			}
 			game.sendMessage(req);
+			//TODO: undo this and welp
+			//System.err.println("IT ACTUALLY WORKED");
 		}else if(game==null) {
-			
+			//reconnect
+			//System.err.println("WELP");
 		}
 		System.out.println(msg);
 		}catch(Exception e) {
