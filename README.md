@@ -13,7 +13,7 @@ The client channel is built using HTTP and TCP. I used TCP because all of the da
 The server consists of a matchmaking thread and 1-10 game threads. 
 When the server receives a request from the login server to make a match for a player, it puts that request in a BlockingQueue that the matchmaking thread reads from.
 When two players are in the queue, the matchmaking thread creates a Game object, assigns the players to that Game, and sends the Game to the game thread with the least activity. 
-The client then conencts to the match and sends and receives data from the server.
+The client then connects to the match and sends and receives data from the server.
 
-I used blocking queues throughout the program to ensure that everything is thread safe. I also used in-memory hashmaps as database so writing and retrieving data is fast.
+I used blocking queues throughout the program to ensure that everything is thread safe. I also used in-memory hashmaps as databases so writing and retrieving data is fast.
 
