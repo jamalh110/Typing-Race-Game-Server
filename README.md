@@ -1,6 +1,5 @@
 # Typing-Race-Game-Server
 
-Demo Video: https://youtu.be/MvyhU7ZtN7w
 
 This is the Game Server. It is built using a lightweight non blocking I/O framework called Netty. 
 
